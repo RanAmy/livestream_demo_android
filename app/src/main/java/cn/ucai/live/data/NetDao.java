@@ -131,4 +131,11 @@ public class NetDao {
                 .targetClass(String.class)
                 .execute(listener);
     }
+
+//    public static void loadLiveList(Context context, OnCompleteListener listener){
+//        OkHttpUtils<String> utils = new OkHttpUtils<>(context);
+//        utils.setRequestUrl(I.REQUEST_GET_ALL_CHATROOM)
+//                .targetClass(String.class)
+//                .execute(listener);
+//    }
 }

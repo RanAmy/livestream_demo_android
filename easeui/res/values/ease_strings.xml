@@ -202,6 +202,7 @@
     <string name="login_failure_failed">Logon failure: failed to retrieve contacts or groups</string>
     <string name="Login_failed">Login failed:</string>
     <string name="receive_the_passthrough">Receive cmd message : action：</string>
+    <string name="User_nick_cannot_be_empty">用户昵称不能为空！</string>
     <string name="have_you_removed">Have you removed from his buddy list</string>
     <string name="can_not_connect_chat_server_connection">Cannot connect to server</string>
     <string name="the_current_network">The current network is not available, please check the network Settings</string>
