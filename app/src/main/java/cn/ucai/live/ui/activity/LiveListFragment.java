@@ -45,7 +45,7 @@ public class LiveListFragment extends Fragment {
     private static final String TAG = LiveListFragment.class.getSimpleName();
 
     //    private ProgressBar pb;
-    private ListView listView;
+//    private ListView listView;
     private LiveAdapter adapter;
     private List<EMChatRoom> chatRoomList;
     private boolean isLoading;
@@ -79,7 +79,7 @@ public class LiveListFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         chatRoomList = new ArrayList<EMChatRoom>();
         rooms = new ArrayList<EMChatRoom>();
-        adapter = new LiveAdapter(getContext(),getLiveRoomList(chatRoomList));
+//        adapter = new LiveAdapter(getContext(),getLiveRoomList(chatRoomList));
 
         recyclerView = (RecyclerView) getView().findViewById(R.id.recycleview);
 //        footView = getView().inflate(R.layout.em_listview_footer_view, recyclerView, false);
@@ -88,7 +88,7 @@ public class LiveListFragment extends Fragment {
         recyclerView.setLayoutManager(gm);
         recyclerView.setHasFixedSize(true);
         recyclerView.addItemDecoration(new GridMarginDecoration(6));
-        recyclerView.setAdapter(adapter);
+//        recyclerView.setAdapter(adapter);
 
 //        footLoadingLayout = (LinearLayout) footView.findViewById(R.id.loading_layout);
 //        footLoadingPB = (ProgressBar)footView.findViewById(R.id.loading_bar);
@@ -144,12 +144,10 @@ public class LiveListFragment extends Fragment {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
-                if(newState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE){
-                    if(pageCount != 0){
-                        int lasPos = gm.findLastVisibleItemPosition();
-                        if(hasMoreData && !isLoading && lasPos == listView.getCount()-1){
-                            loadAndShowData();
-                        }
+                if(newState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
+                    int lasPos = gm.findLastVisibleItemPosition();
+                    if (hasMoreData && !isLoading && lasPos == chatRoomList.size() - 1) {
+                        loadAndShowData();
                     }
                 }
             }
@@ -185,9 +183,9 @@ public class LiveListFragment extends Fragment {
                             if(isFirstLoading){
 //                                pb.setVisibility(View.INVISIBLE);
                                 isFirstLoading = false;
-                                adapter.initData(getLiveRoomList(chatRoomList));
-//                                adapter = new LiveAdapter(getContext(),getLiveRoomList(chatRoomList));
-//                                listView.setAdapter(adapter);
+//                                adapter.initData(getLiveRoomList(chatRoomList));
+                                adapter = new LiveAdapter(getContext(),getLiveRoomList(chatRoomList));
+                                recyclerView.setAdapter(adapter);
 //                                rooms.addAll(chatRooms);
                             }else{
                                 if(chatRooms.size() < pagesize){
@@ -196,8 +194,8 @@ public class LiveListFragment extends Fragment {
 //                                    footLoadingPB.setVisibility(View.GONE);
 //                                    footLoadingText.setText("No more data");
                                 }
+                                adapter.notifyDataSetChanged();
                             }
-                            adapter.notifyDataSetChanged();
                             isLoading = false;
                         }
                     });
