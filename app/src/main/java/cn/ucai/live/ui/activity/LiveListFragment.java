@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -63,6 +64,8 @@ public class LiveListFragment extends Fragment {
     private List<EMChatRoom> rooms;
     View footView;
     RecyclerView recyclerView;
+    SwipeRefreshLayout mSrl;
+    TextView mTvRefresh;
     GridLayoutManager gm;
 
 
@@ -89,18 +92,26 @@ public class LiveListFragment extends Fragment {
         recyclerView.setHasFixedSize(true);
         recyclerView.addItemDecoration(new GridMarginDecoration(6));
 //        recyclerView.setAdapter(adapter);
+        mSrl = (SwipeRefreshLayout) getView().findViewById(R.id.srl);
+        mTvRefresh = (TextView) getView().findViewById(R.id.tv_refresh);
 
-//        footLoadingLayout = (LinearLayout) footView.findViewById(R.id.loading_layout);
-//        footLoadingPB = (ProgressBar)footView.findViewById(R.id.loading_bar);
-//        footLoadingText = (TextView) footView.findViewById(R.id.loading_text);
+        footLoadingLayout = (LinearLayout) getView().findViewById(R.id.loading_layout);
+        footLoadingPB = (ProgressBar)getView().findViewById(R.id.loading_bar);
+        footLoadingText = (TextView) getView().findViewById(R.id.loading_text);
 //        listView.addFooterView(footView, null, false);
-//        footLoadingLayout.setVisibility(View.GONE);
+        footLoadingLayout.setVisibility(View.GONE);
 
         loadAndShowData();
         setListener();
     }
 
     private void setListener() {
+        setChatRoomChangeListener();
+        setPullDownListener();
+        setPullUpListener();
+    }
+
+    private void setChatRoomChangeListener() {
         EMClient.getInstance().chatroomManager().addChatRoomChangeListener(new EMChatRoomChangeListener(){
 
             @Override
@@ -136,9 +147,8 @@ public class LiveListFragment extends Fragment {
 
             }
         });
-
-        setPullUpListener();
     }
+
     private void setPullUpListener() {
         recyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -155,8 +165,20 @@ public class LiveListFragment extends Fragment {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-//                int firstPosition = gm.findFirstVisibleItemPosition();
-//                mSrl.setEnabled(firstPosition==0);
+                int firstPosition = gm.findFirstVisibleItemPosition();
+                mSrl.setEnabled(firstPosition==0);
+            }
+        });
+    }
+
+    private void setPullDownListener() {
+        mSrl.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                mSrl.setRefreshing(true);
+                mTvRefresh.setVisibility(View.VISIBLE);
+                cursor = null;
+                loadAndShowData();
             }
         });
     }
@@ -174,11 +196,13 @@ public class LiveListFragment extends Fragment {
                     L.e(TAG,"chatRooms="+chatRooms.size()+",isFirstLoading="+isFirstLoading);
                     getActivity().runOnUiThread(new Runnable() {
                         public void run() {
+                            mSrl.setRefreshing(false);
+                            mTvRefresh.setVisibility(View.GONE);
                             chatRoomList.addAll(chatRooms);
                             if(chatRooms.size() != 0){
                                 cursor = result.getCursor();
-//                                if(chatRooms.size() == pagesize)
-//                                    footLoadingLayout.setVisibility(View.VISIBLE);
+                                if(chatRooms.size() == pagesize)
+                                    footLoadingLayout.setVisibility(View.VISIBLE);
                             }
                             if(isFirstLoading){
 //                                pb.setVisibility(View.INVISIBLE);
@@ -190,9 +214,9 @@ public class LiveListFragment extends Fragment {
                             }else{
                                 if(chatRooms.size() < pagesize){
                                     hasMoreData = false;
-//                                    footLoadingLayout.setVisibility(View.VISIBLE);
-//                                    footLoadingPB.setVisibility(View.GONE);
-//                                    footLoadingText.setText("No more data");
+                                    footLoadingLayout.setVisibility(View.VISIBLE);
+                                    footLoadingPB.setVisibility(View.GONE);
+                                    footLoadingText.setText("No more data");
                                 }
                                 adapter.notifyDataSetChanged();
                             }
@@ -205,8 +229,10 @@ public class LiveListFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         public void run() {
                             isLoading = false;
+                            mSrl.setRefreshing(false);
+                            mTvRefresh.setVisibility(View.GONE);
 //                            pb.setVisibility(View.INVISIBLE);
-//                            footLoadingLayout.setVisibility(View.GONE);
+                            footLoadingLayout.setVisibility(View.GONE);
                             Toast.makeText(getContext(), getResources().getString(R.string.failed_to_load_data), Toast.LENGTH_SHORT).show();
                         }
                     });
