@@ -18,6 +18,22 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.hyphenate.EMValueCallBack;
+import com.hyphenate.chat.EMChatRoom;
+import com.hyphenate.chat.EMClient;
+import com.hyphenate.easeui.controller.EaseUI;
+import com.hyphenate.easeui.domain.User;
+import com.hyphenate.easeui.utils.EaseUserUtils;
+import com.hyphenate.easeui.widget.EaseImageView;
+import com.ucloud.common.util.DeviceUtils;
+import com.ucloud.live.UEasyStreaming;
+import com.ucloud.live.UStreamingProfile;
+import com.ucloud.live.widget.UAspectFrameLayout;
+
+import java.util.List;
+import java.util.Random;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -27,27 +43,13 @@ import cn.ucai.live.data.TestDataRepository;
 import cn.ucai.live.data.model.LiveRoom;
 import cn.ucai.live.data.model.LiveSettings;
 import cn.ucai.live.utils.CommonUtils;
+import cn.ucai.live.utils.L;
 import cn.ucai.live.utils.Log2FileUtil;
 import cn.ucai.live.utils.OnCompleteListener;
 import cn.ucai.live.utils.ResultUtils;
 
-import com.hyphenate.EMValueCallBack;
-import com.hyphenate.chat.EMChatRoom;
-import com.hyphenate.chat.EMClient;
-import com.hyphenate.easeui.controller.EaseUI;
-import com.hyphenate.easeui.domain.User;
-import com.hyphenate.easeui.utils.EaseUserUtils;
-import com.hyphenate.easeui.widget.EaseAlertDialog;
-import com.hyphenate.easeui.widget.EaseImageView;
-import com.ucloud.common.util.DeviceUtils;
-import com.ucloud.live.UEasyStreaming;
-import com.ucloud.live.UStreamingProfile;
-import com.ucloud.live.widget.UAspectFrameLayout;
-import java.util.List;
-import java.util.Random;
-
 public class StartLiveActivity extends LiveBaseActivity
-    implements UEasyStreaming.UStreamingStateListener {
+        implements UEasyStreaming.UStreamingStateListener {
   private static final String TAG = StartLiveActivity.class.getSimpleName();
   @BindView(R.id.toolbar) Toolbar toolbar;
   @BindView(R.id.container) UAspectFrameLayout mPreviewContainer;
@@ -91,19 +93,26 @@ public class StartLiveActivity extends LiveBaseActivity
   @Override protected void onActivityCreate(@Nullable Bundle savedInstanceState) {
     setContentView(R.layout.activity_start_live);
     ButterKnife.bind(this);
-    EaseUserUtils.setAppUserAvatar(StartLiveActivity.this, EMClient.getInstance().getCurrentUser(),
+    EaseUserUtils.setAppUserAvatar(StartLiveActivity.this,EMClient.getInstance().getCurrentUser(),
             userAvatar);
     EaseUserUtils.setAppUserNick(EMClient.getInstance().getCurrentUser(),usernameView);
 
+    String id = getIntent().getStringExtra("liveId");
+    L.e(TAG,"getIntent,id="+id);
+    if (id!=null && !id.equals("")){
+      liveId = id;
+      chatroomId = id;
+      initEnv();
+    }else {
 //    liveId = TestDataRepository.getLiveRoomId(EMClient.getInstance().getCurrentUser());
 //    chatroomId = TestDataRepository.getChatRoomId(EMClient.getInstance().getCurrentUser());
 //    anchorId = EMClient.getInstance().getCurrentUser();
 ////    usernameView.setText(anchorId);
-    pd = new ProgressDialog(StartLiveActivity.this);
-    pd.setMessage("创建直播...");
-    pd.show();
-    createLive();
-//    initEnv();
+      pd = new ProgressDialog(StartLiveActivity.this);
+      pd.setMessage("创建直播...");
+      pd.show();
+      createLive();
+    }
   }
 
   public void initEnv() {
@@ -116,16 +125,16 @@ public class StartLiveActivity extends LiveBaseActivity
     //        UStreamingProfile.Stream stream = new UStreamingProfile.Stream(rtmpPushStreamDomain, "ucloud/" + mSettings.getPusblishStreamId());
     //hardcode
     UStreamingProfile.Stream stream =
-        new UStreamingProfile.Stream(rtmpPushStreamDomain, "ucloud/" + liveId);
+            new UStreamingProfile.Stream(rtmpPushStreamDomain, "ucloud/" + liveId);
 
     mStreamingProfile =
-        new UStreamingProfile.Builder().setVideoCaptureWidth(mSettings.getVideoCaptureWidth())
-            .setVideoCaptureHeight(mSettings.getVideoCaptureHeight())
-            .setVideoEncodingBitrate(
-                mSettings.getVideoEncodingBitRate()) //UStreamingProfile.VIDEO_BITRATE_NORMAL
-            .setVideoEncodingFrameRate(mSettings.getVideoFrameRate())
-            .setStream(stream)
-            .build();
+            new UStreamingProfile.Builder().setVideoCaptureWidth(mSettings.getVideoCaptureWidth())
+                    .setVideoCaptureHeight(mSettings.getVideoCaptureHeight())
+                    .setVideoEncodingBitrate(
+                            mSettings.getVideoEncodingBitRate()) //UStreamingProfile.VIDEO_BITRATE_NORMAL
+                    .setVideoEncodingFrameRate(mSettings.getVideoFrameRate())
+                    .setStream(stream)
+                    .build();
 
     encodingType = UEasyStreaming.UEncodingType.MEDIA_X264;
     if (DeviceUtils.hasJellyBeanMr2()) {
@@ -182,17 +191,17 @@ public class StartLiveActivity extends LiveBaseActivity
    * 开始直播
    */
   @OnClick(R.id.btn_start) void startLive() {
-    pd = new ProgressDialog(StartLiveActivity.this);
-    pd.setMessage("创建直播中...");
-    pd.show();
-    createLive();
     //demo为了测试方便，只有指定的账号才能开启直播
+    L.e(TAG,"startLive,id="+liveId);
     if (liveId == null || liveId.equals("")) {
+      CommonUtils.showShortToast("获取直播数据失败");
+      L.e(TAG,"id is null");
       return;
     }
+    startLiveByChatRoom();
   }
 
-  private void startLiveByChatRoom() {
+  private void startLiveByChatRoom(){
     startContainer.setVisibility(View.INVISIBLE);
     //Utils.hideKeyboard(titleEdit);
     new Thread() {
@@ -216,34 +225,36 @@ public class StartLiveActivity extends LiveBaseActivity
 
   private void createLive() {
     User user = EaseUserUtils.getAppUserInfo(EMClient.getInstance().getCurrentUser());
-    if (user != null) {
+    if (user!=null) {
       NetDao.createLive(StartLiveActivity.this, user, new OnCompleteListener<String>() {
         @Override
         public void onSuccess(String s) {
+          L.e("startLive","s="+s);
           boolean success = false;
           pd.dismiss();
-          if (s != null) {
+          if (s!=null){
             String id  = ResultUtils.getEMResultFromJson(s);
             if (id!=null){
               success = true;
+              L.e("startLive","id="+id);
               initLive(id);
 //              startLiveByChatRoom();
             }
           }
-          if (!success) {
-            CommonUtils.showShortToast("创建直播失败");
+          if (!success){
+            CommonUtils.showShortToast("创建直播失败!");
           }
         }
 
         @Override
         public void onError(String error) {
           pd.dismiss();
-          CommonUtils.showShortToast("创建直播失败"+error);
+          CommonUtils.showShortToast("创建直播失败!"+error);
         }
       });
-    } else {
+    }else{
       pd.dismiss();
-      CommonUtils.showShortToast("当前用户信息获取失败！");
+      CommonUtils.showShortToast("当前用户信息获取失败!");
     }
   }
 
@@ -317,8 +328,8 @@ public class StartLiveActivity extends LiveBaseActivity
   @Override void onChatImageClick() {
     ConversationListFragment fragment = ConversationListFragment.newInstance(null, false);
     getSupportFragmentManager().beginTransaction()
-        .replace(R.id.message_container, fragment)
-        .commit();
+            .replace(R.id.message_container, fragment)
+            .commit();
   }
 
   protected void setListItemClickListener() {
@@ -329,8 +340,8 @@ public class StartLiveActivity extends LiveBaseActivity
       countdownView.setVisibility(View.VISIBLE);
       countdownView.setText(String.format("%d", count));
       ScaleAnimation scaleAnimation =
-          new ScaleAnimation(1.0f, 0f, 1.0f, 0f, Animation.RELATIVE_TO_SELF, 0.5f,
-              Animation.RELATIVE_TO_SELF, 0.5f);
+              new ScaleAnimation(1.0f, 0f, 1.0f, 0f, Animation.RELATIVE_TO_SELF, 0.5f,
+                      Animation.RELATIVE_TO_SELF, 0.5f);
       scaleAnimation.setDuration(COUNTDOWN_DELAY);
       scaleAnimation.setFillAfter(false);
       scaleAnimation.setAnimationListener(new Animation.AnimationListener() {
@@ -340,18 +351,18 @@ public class StartLiveActivity extends LiveBaseActivity
         @Override public void onAnimationEnd(Animation animation) {
           countdownView.setVisibility(View.GONE);
           EMClient.getInstance()
-              .chatroomManager()
-              .joinChatRoom(chatroomId, new EMValueCallBack<EMChatRoom>() {
-                @Override public void onSuccess(EMChatRoom emChatRoom) {
-                  chatroom = emChatRoom;
-                  addChatRoomChangeListenr();
-                  onMessageListInit();
-                }
+                  .chatroomManager()
+                  .joinChatRoom(chatroomId, new EMValueCallBack<EMChatRoom>() {
+                    @Override public void onSuccess(EMChatRoom emChatRoom) {
+                      chatroom = emChatRoom;
+                      addChatRoomChangeListenr();
+                      onMessageListInit();
+                    }
 
-                @Override public void onError(int i, String s) {
-                  showToast("加入聊天室失败");
-                }
-              });
+                    @Override public void onError(int i, String s) {
+                      showToast("加入聊天室失败");
+                    }
+                  });
 
           if (count == COUNTDOWN_END_INDEX && mEasyStreaming != null && !isShutDownCountdown) {
             showToast("直播开始！");
@@ -374,21 +385,16 @@ public class StartLiveActivity extends LiveBaseActivity
 
   @Override protected void onPause() {
     super.onPause();
-    if (liveId!=null && !liveId.equals("")) {
-      mEasyStreaming.onPause();
-    }
     mEasyStreaming.onPause();
   }
 
   @Override protected void onResume() {
     super.onResume();
     mEasyStreaming.onResume();
-    if(liveId!=null && !liveId.equals("")) {
-      if (isMessageListInited) messageView.refresh();
-      EaseUI.getInstance().pushActivity(this);
-      // register the event listener when enter the foreground
-      EMClient.getInstance().chatManager().addMessageListener(msgListener);
-    }
+    if (isMessageListInited) messageView.refresh();
+    EaseUI.getInstance().pushActivity(this);
+    // register the event listener when enter the foreground
+    EMClient.getInstance().chatManager().addMessageListener(msgListener);
   }
 
   @Override public void onStop() {

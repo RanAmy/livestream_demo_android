@@ -17,7 +17,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -154,9 +153,9 @@ public class LiveListFragment extends Fragment {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
-                if(newState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
+                if(newState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE){
                     int lasPos = gm.findLastVisibleItemPosition();
-                    if (hasMoreData && !isLoading && lasPos == chatRoomList.size() - 1) {
+                    if(hasMoreData && !isLoading && lasPos == chatRoomList.size()-1){
                         loadAndShowData();
                     }
                 }
@@ -193,12 +192,13 @@ public class LiveListFragment extends Fragment {
                             .chatroomManager().fetchPublicChatRoomsFromServer(pagesize, cursor);
                     //get chat room list
                     final List<EMChatRoom> chatRooms = result.getData();
-                    L.e(TAG,"chatRooms="+chatRooms.size()+",isFirstLoading="+isFirstLoading);
+//                    L.e(TAG,"chatRooms="+chatRooms.size()+",isFirstLoading="+isFirstLoading);
                     getActivity().runOnUiThread(new Runnable() {
                         public void run() {
                             mSrl.setRefreshing(false);
                             mTvRefresh.setVisibility(View.GONE);
                             chatRoomList.addAll(chatRooms);
+//                            L.e(TAG,"chatRooms="+chatRooms.size());
                             if(chatRooms.size() != 0){
                                 cursor = result.getCursor();
                                 if(chatRooms.size() == pagesize)
@@ -213,6 +213,7 @@ public class LiveListFragment extends Fragment {
 //                                rooms.addAll(chatRooms);
                             }else{
                                 if(chatRooms.size() < pagesize){
+//                                    L.e(TAG,"No more data");
                                     hasMoreData = false;
                                     footLoadingLayout.setVisibility(View.VISIBLE);
                                     footLoadingPB.setVisibility(View.GONE);
@@ -253,11 +254,18 @@ public class LiveListFragment extends Fragment {
             liveRoom.setChatroomId(room.getId());
             liveRoom.setCover(R.drawable.test1);
             liveRoom.setAnchorId(room.getOwner());
-            L.e(TAG,"liveroom="+liveRoom);
+//            L.e(TAG,"liveroom="+liveRoom);
             roomList.add(liveRoom);
         }
 
         return roomList;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        cursor = null;
+        loadAndShowData();
     }
 
     static class LiveAdapter extends RecyclerView.Adapter<PhotoViewHolder> {
@@ -279,8 +287,15 @@ public class LiveListFragment extends Fragment {
                 public void onClick(View v) {
                     final int position = holder.getAdapterPosition();
                     if (position == RecyclerView.NO_POSITION) return;
-                    context.startActivity(new Intent(context, LiveDetailsActivity.class)
-                            .putExtra("liveroom", liveRoomList.get(position)));
+                    LiveRoom room = liveRoomList.get(position);
+                    L.e(TAG,"room="+room);
+                    if (room.getAnchorId().equals(EMClient.getInstance().getCurrentUser())){
+                        context.startActivity(new Intent(context,StartLiveActivity.class)
+                                .putExtra("liveId",room.getId()));
+                    }else {
+                        context.startActivity(new Intent(context, LiveDetailsActivity.class)
+                                .putExtra("liveroom", liveRoomList.get(position)));
+                    }
                 }
             });
             return holder;
@@ -289,7 +304,7 @@ public class LiveListFragment extends Fragment {
         @Override
         public void onBindViewHolder(PhotoViewHolder holder, int position) {
             LiveRoom liveRoom = liveRoomList.get(position);
-            L.e(TAG,"onBindViewHolder,liveRoom="+liveRoom);
+//            L.e(TAG,"onBindViewHolder,liveRoom="+liveRoom);
             holder.anchor.setText(liveRoom.getName());
             holder.audienceNum.setText(liveRoom.getAudienceNum() + "人");
             Glide.with(context)
@@ -300,7 +315,7 @@ public class LiveListFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            L.e(TAG,"adapter,size="+liveRoomList.size());
+//            L.e(TAG,"adapter,size="+liveRoomList.size());
             return liveRoomList.size();
         }
 
