@@ -102,17 +102,13 @@ public class StartLiveActivity extends LiveBaseActivity
     if (id!=null && !id.equals("")){
       liveId = id;
       chatroomId = id;
-      initEnv();
     }else {
-//    liveId = TestDataRepository.getLiveRoomId(EMClient.getInstance().getCurrentUser());
+      liveId = EMClient.getInstance().getCurrentUser();//TestDataRepository.getLiveRoomId(EMClient.getInstance().getCurrentUser());
 //    chatroomId = TestDataRepository.getChatRoomId(EMClient.getInstance().getCurrentUser());
 //    anchorId = EMClient.getInstance().getCurrentUser();
 ////    usernameView.setText(anchorId);
-      pd = new ProgressDialog(StartLiveActivity.this);
-      pd.setMessage("创建直播...");
-      pd.show();
-      createLive();
     }
+    initEnv();
   }
 
   public void initEnv() {
@@ -193,12 +189,16 @@ public class StartLiveActivity extends LiveBaseActivity
   @OnClick(R.id.btn_start) void startLive() {
     //demo为了测试方便，只有指定的账号才能开启直播
     L.e(TAG,"startLive,id="+liveId);
-    if (liveId == null || liveId.equals("")) {
+    if (chatroomId == null || chatroomId.equals("")) {
       CommonUtils.showShortToast("获取直播数据失败");
       L.e(TAG,"id is null");
-      return;
+      pd = new ProgressDialog(StartLiveActivity.this);
+      pd.setMessage("创建直播...");
+      pd.show();
+      createLive();
+    }else {
+      startLiveByChatRoom();
     }
-    startLiveByChatRoom();
   }
 
   private void startLiveByChatRoom(){
@@ -238,7 +238,7 @@ public class StartLiveActivity extends LiveBaseActivity
               success = true;
               L.e("startLive","id="+id);
               initLive(id);
-//              startLiveByChatRoom();
+              startLiveByChatRoom();
             }
           }
           if (!success){
@@ -259,9 +259,9 @@ public class StartLiveActivity extends LiveBaseActivity
   }
 
   private void initLive(String id) {
-    liveId = id;
+//    liveId = id;
     chatroomId = id;
-    initEnv();
+//    initEnv();
   }
 
   /**

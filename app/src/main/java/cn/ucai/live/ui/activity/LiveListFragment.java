@@ -192,7 +192,7 @@ public class LiveListFragment extends Fragment {
                             .chatroomManager().fetchPublicChatRoomsFromServer(pagesize, cursor);
                     //get chat room list
                     final List<EMChatRoom> chatRooms = result.getData();
-//                    L.e(TAG,"chatRooms="+chatRooms.size()+",isFirstLoading="+isFirstLoading);
+                    L.e(TAG,"chatRooms="+chatRooms.size()+",isFirstLoading="+isFirstLoading);
                     getActivity().runOnUiThread(new Runnable() {
                         public void run() {
                             mSrl.setRefreshing(false);
@@ -264,6 +264,7 @@ public class LiveListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        L.e(TAG,"onResume");
         cursor = null;
         loadAndShowData();
     }
