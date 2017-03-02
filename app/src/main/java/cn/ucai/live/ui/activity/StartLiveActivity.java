@@ -99,7 +99,11 @@ public class StartLiveActivity extends LiveBaseActivity
 //    chatroomId = TestDataRepository.getChatRoomId(EMClient.getInstance().getCurrentUser());
 //    anchorId = EMClient.getInstance().getCurrentUser();
 ////    usernameView.setText(anchorId);
-    initEnv();
+    pd = new ProgressDialog(StartLiveActivity.this);
+    pd.setMessage("创建直播...");
+    pd.show();
+    createLive();
+//    initEnv();
   }
 
   public void initEnv() {
@@ -183,7 +187,7 @@ public class StartLiveActivity extends LiveBaseActivity
     pd.show();
     createLive();
     //demo为了测试方便，只有指定的账号才能开启直播
-    if (liveId == null) {
+    if (liveId == null || liveId.equals("")) {
       return;
     }
   }
@@ -219,11 +223,11 @@ public class StartLiveActivity extends LiveBaseActivity
           boolean success = false;
           pd.dismiss();
           if (s != null) {
-            List<String> ids = ResultUtils.getEMResultFromJson(s, String.class);
-            if (ids != null && ids.size() > 0) {
+            String id  = ResultUtils.getEMResultFromJson(s);
+            if (id!=null){
               success = true;
-              initLive(ids.get(0));
-              startLiveByChatRoom();
+              initLive(id);
+//              startLiveByChatRoom();
             }
           }
           if (!success) {
@@ -370,16 +374,21 @@ public class StartLiveActivity extends LiveBaseActivity
 
   @Override protected void onPause() {
     super.onPause();
+    if (liveId!=null && !liveId.equals("")) {
+      mEasyStreaming.onPause();
+    }
     mEasyStreaming.onPause();
   }
 
   @Override protected void onResume() {
     super.onResume();
     mEasyStreaming.onResume();
-    if (isMessageListInited) messageView.refresh();
-    EaseUI.getInstance().pushActivity(this);
-    // register the event listener when enter the foreground
-    EMClient.getInstance().chatManager().addMessageListener(msgListener);
+    if(liveId!=null && !liveId.equals("")) {
+      if (isMessageListInited) messageView.refresh();
+      EaseUI.getInstance().pushActivity(this);
+      // register the event listener when enter the foreground
+      EMClient.getInstance().chatManager().addMessageListener(msgListener);
+    }
   }
 
   @Override public void onStop() {
