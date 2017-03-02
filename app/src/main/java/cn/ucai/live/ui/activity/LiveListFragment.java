@@ -26,6 +26,7 @@ import com.hyphenate.EMChatRoomChangeListener;
 import com.hyphenate.chat.EMChatRoom;
 import com.hyphenate.chat.EMClient;
 import com.hyphenate.chat.EMCursorResult;
+import com.hyphenate.easeui.utils.EaseUserUtils;
 import com.hyphenate.exceptions.HyphenateException;
 
 import java.util.ArrayList;
@@ -177,6 +178,8 @@ public class LiveListFragment extends Fragment {
                 mSrl.setRefreshing(true);
                 mTvRefresh.setVisibility(View.VISIBLE);
                 cursor = null;
+                isFirstLoading = true;
+                chatRoomList.clear();
                 loadAndShowData();
             }
         });
@@ -217,7 +220,7 @@ public class LiveListFragment extends Fragment {
                                     hasMoreData = false;
                                     footLoadingLayout.setVisibility(View.VISIBLE);
                                     footLoadingPB.setVisibility(View.GONE);
-                                    footLoadingText.setText("No more data");
+                                    footLoadingText.setText("没有更多数据可加载");
                                 }
                                 adapter.notifyDataSetChanged();
                             }
@@ -252,7 +255,7 @@ public class LiveListFragment extends Fragment {
             liveRoom.setAudienceNum(room.getAffiliationsCount());
             liveRoom.setId(room.getId());
             liveRoom.setChatroomId(room.getId());
-            liveRoom.setCover(R.drawable.test1);
+            liveRoom.setCover(EaseUserUtils.getAppUserInfo(room.getOwner()).getAvatar());
             liveRoom.setAnchorId(room.getOwner());
 //            L.e(TAG,"liveroom="+liveRoom);
             roomList.add(liveRoom);
