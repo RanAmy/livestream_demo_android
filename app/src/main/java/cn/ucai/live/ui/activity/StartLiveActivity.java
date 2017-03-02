@@ -188,10 +188,8 @@ public class StartLiveActivity extends LiveBaseActivity
    */
   @OnClick(R.id.btn_start) void startLive() {
     //demo为了测试方便，只有指定的账号才能开启直播
-    L.e(TAG,"startLive,id="+liveId);
+    L.e(TAG,"startLive,id="+liveId+",chatroomId="+chatroomId);
     if (chatroomId == null || chatroomId.equals("")) {
-      CommonUtils.showShortToast("获取直播数据失败");
-      L.e(TAG,"id is null");
       pd = new ProgressDialog(StartLiveActivity.this);
       pd.setMessage("创建直播...");
       pd.show();
@@ -237,7 +235,7 @@ public class StartLiveActivity extends LiveBaseActivity
             if (id!=null){
               success = true;
               L.e("startLive","id="+id);
-              initLive(id);
+              chatroomId = id;
               startLiveByChatRoom();
             }
           }
@@ -258,12 +256,6 @@ public class StartLiveActivity extends LiveBaseActivity
     }
   }
 
-  private void initLive(String id) {
-//    liveId = id;
-    chatroomId = id;
-//    initEnv();
-  }
-
   /**
    * 关闭直播显示直播成果
    */
@@ -273,7 +265,22 @@ public class StartLiveActivity extends LiveBaseActivity
       finish();
       return;
     }
+    removeLive();
     showConfirmCloseLayout();
+  }
+
+  private void removeLive() {
+    NetDao.removeLive(StartLiveActivity.this, chatroomId, new OnCompleteListener<String>() {
+      @Override
+      public void onSuccess(String s) {
+        L.e(TAG,"removeLive,s="+s);
+      }
+
+      @Override
+      public void onError(String error) {
+
+      }
+    });
   }
 
   @OnClick(R.id.img_bt_switch_voice) void toggleMicrophone(){
