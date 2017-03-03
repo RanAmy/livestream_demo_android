@@ -68,6 +68,7 @@ public class RoomUserDetailsDialog extends DialogFragment {
 
     @OnClick(R.id.btn_message)
     void onMessageBtnClick() {
+
         ChatFragment fragment = ChatFragment.newInstance(username, false);
         dismiss();
         getActivity().getSupportFragmentManager().beginTransaction().addToBackStack(null).replace(R.id.message_container, fragment).commit();
