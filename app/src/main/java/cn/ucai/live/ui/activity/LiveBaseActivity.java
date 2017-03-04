@@ -228,6 +228,8 @@ public abstract class LiveBaseActivity extends BaseActivity {
 
         leftGiftView.setName(message.getStringAttribute(I.User.NICK,message.getFrom()));
 
+        leftGiftView.setGift(message.getIntAttribute(LiveConstants.CMD_GIFT,0));
+
         leftGiftView.setTranslationY(0);
 
         ViewAnimator.animate(leftGiftView)
@@ -313,6 +315,8 @@ public abstract class LiveBaseActivity extends BaseActivity {
         leftGiftView2.setAvatar(message.getFrom());
 
         leftGiftView2.setName(nick);
+
+        leftGiftView2.setGift(message.getIntAttribute(LiveConstants.CMD_GIFT,0));
 
         leftGiftView2.setTranslationY(0);
 
@@ -894,13 +898,29 @@ public abstract class LiveBaseActivity extends BaseActivity {
 
             RoomGiftListDialog.newInstance();
 
+    dialog.setGiftOnClickListener(new View.OnClickListener() {
+
+      @Override
+
+      public void onClick(View v) {
+
+        int id = (int) v.getTag();
+
+        sendGiftMsg(dialog,id);
+
+      }
+
+    });
+
     dialog.show(getSupportFragmentManager(), "RoomGiftListDialog");
 
   }
 
 
 
-  private void sentGiftMsg(){
+  private void sendGiftMsg(RoomGiftListDialog dialog,int id){
+
+    dialog.dismiss();
 
     User user = getAppUserInfo(EMClient.getInstance().getCurrentUser());
 
@@ -915,6 +935,8 @@ public abstract class LiveBaseActivity extends BaseActivity {
     message.addBody(cmdMessageBody);
 
     message.setAttribute(I.User.NICK,user.getMUserNick());
+
+    message.setAttribute(LiveConstants.CMD_GIFT,id);
 
     message.setChatType(EMMessage.ChatType.ChatRoom);
 

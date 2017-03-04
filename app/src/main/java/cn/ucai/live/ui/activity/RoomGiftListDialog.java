@@ -46,6 +46,10 @@ import com.hyphenate.easeui.utils.EaseUserUtils;
 
 import java.util.ArrayList;
 
+import java.util.Collections;
+
+import java.util.Comparator;
+
 import java.util.Iterator;
 
 import java.util.List;
@@ -166,29 +170,35 @@ public class RoomGiftListDialog extends DialogFragment {
 
         }
 
-    }
 
 
+        Collections.sort(mGiftList, new Comparator<Gift>() {
 
-    private UserDetailsDialogListener dialogListener;
+            @Override
 
+            public int compare(Gift lhs, Gift rhs) {
 
+                return lhs.getId().compareTo(rhs.getId());
 
-    public void setUserDetailsDialogListener(UserDetailsDialogListener dialogListener) {
+            }
 
-        this.dialogListener = dialogListener;
+        });
 
-    }
-
-
-
-    interface UserDetailsDialogListener {
-
-        void onMentionClick(String username);
+        adapter.notifyDataSetChanged();
 
     }
 
 
+
+    private View.OnClickListener mListener;
+
+
+
+    public void setGiftOnClickListener(View.OnClickListener listener) {
+
+        this.mListener = listener;
+
+    }
 
 
 
@@ -327,6 +337,8 @@ public class RoomGiftListDialog extends DialogFragment {
                 super(view);
 
                 ButterKnife.bind(this, view);
+
+                mLayoutGift.setOnClickListener(mListener);
 
             }
 
