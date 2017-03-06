@@ -91,7 +91,7 @@ public class PreferenceManager {
 	private static String SHARED_KEY_CURRENTUSER_AVATAR = "SHARED_KEY_CURRENTUSER_AVATAR";
 
 	private static String SHARED_KEY_PAYMENT_TIP = "SHARED_KEY_PAYMENT_TIP";
-
+	private static String SHARED_KEY_CURRENTUSER_CHANGE = "SHARED_KEY_CURRENTUSER_CHANGE";
 
 
 	private static String SHARED_KEY_REST_SERVER = "SHARED_KEY_REST_SERVER";
@@ -430,6 +430,22 @@ public class PreferenceManager {
 
 	}
 
+	public void setCurrentChange(int change) {
+
+		editor.putInt(SHARED_KEY_CURRENTUSER_CHANGE, change);
+
+		editor.apply();
+
+	}
+
+
+
+	public int getCurrentChange() {
+
+		return mSharedPreferences.getInt(SHARED_KEY_CURRENTUSER_CHANGE, 0);
+
+	}
+
 
 
 	public String getCurrentUserNick() {
@@ -563,6 +579,8 @@ public class PreferenceManager {
 		editor.remove(SHARED_KEY_CURRENTUSER_AVATAR);
 
 		editor.remove(SHARED_KEY_PAYMENT_TIP);
+
+		editor.remove(SHARED_KEY_CURRENTUSER_CHANGE);
 
 		editor.apply();
 

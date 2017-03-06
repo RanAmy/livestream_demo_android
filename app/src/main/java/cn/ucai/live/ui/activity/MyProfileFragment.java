@@ -49,8 +49,8 @@ public class MyProfileFragment extends Fragment {
 
 //        usernameView.setText(EMClient.getInstance().getCurrentUser());
 
-        EaseUserUtils.setAppUserAvatar(getContext(),EMClient.getInstance().getCurrentUser(),userAvatar);
-        EaseUserUtils.setAppUserNick(EMClient.getInstance().getCurrentUser(),usernameView);
+        EaseUserUtils.setAppUserAvatar(getContext(), EMClient.getInstance().getCurrentUser(), userAvatar);
+        EaseUserUtils.setAppUserNick(EMClient.getInstance().getCurrentUser(), usernameView);
 
         //liveSettings = new LiveSettings(getContext());
         //final String[] bitrateArr = getResources().getStringArray(R.array.bitrate_types);
@@ -74,7 +74,8 @@ public class MyProfileFragment extends Fragment {
 
     }
 
-    @OnClick(R.id.btn_logout) void onLogout(){
+    @OnClick(R.id.btn_logout)
+    void onLogout() {
         LiveHelper.getInstance().logout(false, new EMCallBack() {
             @Override
             public void onSuccess() {
@@ -117,4 +118,10 @@ public class MyProfileFragment extends Fragment {
         super.onDestroyView();
         unbinder.unbind();
     }
+
+    @OnClick(R.id.layout_change)
+    public void myChange() {
+        MFGT.gotoChange(getActivity());
+    }
 }
+
